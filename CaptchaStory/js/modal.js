@@ -111,7 +111,6 @@ function initializeCaptcha(captchaType) {
     }
 }
 
-
 // Initialize the CAPTCHA with drag-and-drop for fruit
 function initializeFruitCaptcha() {
     const carrotImage = document.getElementById('carrot');
@@ -125,7 +124,7 @@ function initializeFruitCaptcha() {
 
     const images = [carrotImage, appleImage, bananaImage];
 
-    // Acak urutan gambar
+    // Shuffle the order of images
     for (let i = images.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         images[i].parentNode.appendChild(images[j]);
@@ -137,16 +136,11 @@ function initializeFruitCaptcha() {
     appleImage.id = 'apple';
     bananaImage.id = 'banana';
 
-    // Set dragstart event listener
-    carrotImage.addEventListener('dragstart', function(event) {
-        event.dataTransfer.setData('text/plain', 'draggable');
-    });
-
     // Enable drag-and-drop functionality
     enableDragAndDrop('fruit');
 }
 
-// Sama untuk rumah dan hewan
+// Event listeners for house CAPTCHA
 function initializeHouseCaptcha() {
     const rabbitHouseImage = document.getElementById('rabbitHouse');
     const dogHouseImage = document.getElementById('dogHouse');
@@ -159,28 +153,23 @@ function initializeHouseCaptcha() {
 
     const images = [rabbitHouseImage, dogHouseImage, catHouseImage];
 
-    // Acak urutan gambar
+    // Shuffle the order of images
     for (let i = images.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         images[i].parentNode.appendChild(images[j]);
     }
 
-    // Set draggable attribute pada gambar yang benar
+    // Set draggable attribute on the correct answer
     rabbitHouseImage.setAttribute('draggable', 'true');
-    rabbitHouseImage.id = 'draggable'; // Set ID untuk drag-and-drop
+    rabbitHouseImage.id = 'draggable'; // Set ID for drag-and-drop
     dogHouseImage.id = 'dogHouse';
     catHouseImage.id = 'catHouse';
-
-    // Set dragstart event listener
-    rabbitHouseImage.addEventListener('dragstart', function(event) {
-        event.dataTransfer.setData('text/plain', 'draggable');
-    });
 
     // Enable drag-and-drop functionality
     enableDragAndDrop('house');
 }
 
-// Untuk hewan juga
+// Function for initializing animal CAPTCHA
 function initializeAnimalCaptcha() {
     const fishImage = document.getElementById('fish');
     const birdImage = document.getElementById('bird');
@@ -193,7 +182,7 @@ function initializeAnimalCaptcha() {
 
     const images = [fishImage, birdImage, turtleImage];
 
-    // Acak urutan gambar
+    // Shuffle the order of images
     for (let i = images.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         images[i].parentNode.appendChild(images[j]);
@@ -205,58 +194,93 @@ function initializeAnimalCaptcha() {
     fishImage.id = 'fish';
     birdImage.id = 'bird';
 
-    // Set dragstart event listener
-    turtleImage.addEventListener('dragstart', function(event) {
-        event.dataTransfer.setData('text/plain', 'draggable');
-    });
-
     // Enable drag-and-drop functionality
     enableDragAndDrop('animal');
 }
 
-
 // Function to add drag-and-drop capabilities
-// Function to enable drag-and-drop capabilities
 function enableDragAndDrop(captchaType) {
-    const dropZone = document.getElementById('dropBox');
+    const dropZone = document.getElementById('dropBox'); // Ensure the ID matches
 
     // Allow Drop
     dropZone.addEventListener('dragover', function(event) {
         event.preventDefault(); // Prevent default to allow drop
-        dropZone.classList.add('dragover'); // Add class for visual feedback
+        dropZone.classList.add('dragover'); // Optional: Add class for styling
     });
 
-    // Handle Drop for Mouse
-    dropZone.addEventListener('drop', function(event) {
-        event.preventDefault();
-        handleDrop(event);
-    });
+    // Drop Event
+    dropZone.addEventListener('drop', handleDrop);
 
-    // Handle Drop for Touch
-    dropZone.addEventListener('touchend', function(event) {
-        const touch = event.changedTouches[0];
-        const element = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (element && element.draggable) {
-            handleDrop({ dataTransfer: { getData: () => 'draggable' } });
-        }
-    });
-
+    // Remove dragover class after drop
     dropZone.addEventListener('dragleave', function() {
-        dropZone.classList.remove('dragover'); // Remove class after drag leave
+        dropZone.classList.remove('dragover');
+    });
+
+    // Handle touch events for mobile
+    const draggableImages = document.querySelectorAll('.captcha-image[draggable="true"]');
+
+    draggableImages.forEach(image => {
+        image.addEventListener('touchstart', function(event) {
+            this.classList.add('dragging'); // Optional: Add a class for styling during drag
+            event.preventDefault();
+        });
+
+        image.addEventListener('touchmove', function(event) {
+            const touch = event.changedTouches[0];
+            this.style.position = 'absolute'; // Make position absolute for dragging
+            this.style.left = `${touch.clientX - this.offsetWidth / 2}px`;
+            this.style.top = `${touch.clientY - this.offsetHeight / 2}px`;
+            event.preventDefault(); // Prevent default to allow smooth movement
+        });
+
+        image.addEventListener('touchend', function(event) {
+            const touch = event.changedTouches[0];
+            const rect = dropZone.getBoundingClientRect();
+            const isInDropZone = touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                                 touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+
+            if (isInDropZone) {
+                handleDrop({ dataTransfer: { getData: () => 'draggable' } }); // Trigger drop handling
+            }
+            this.classList.remove('dragging'); // Remove the dragging class
+            this.style.position = ''; // Reset position after drag
+        });
     });
 }
 
-// Function to handle the drop logic
+// Function to handle the drop event
 function handleDrop(event) {
-    const data = event.dataTransfer ? event.dataTransfer.getData('text/plain') : 'draggable';
-    if (data === 'draggable') {
+    const data = event.dataTransfer.getData('text/plain');
+
+    // Ensure the correct data is checked based on captchaType
+    const captchaType = document.getElementById('dropBox').getAttribute('data-type');
+
+    if (captchaType === 'fruit' && data === 'draggable') {
         Swal.fire({
             title: "Correct!",
             text: "CAPTCHA completed successfully.",
             icon: "success",
             confirmButtonText: "OK"
         }).then(() => {
-            completeCaptcha();
+            completeCaptcha(); // CAPTCHA completed successfully
+        });
+    } else if (captchaType === 'house' && data === 'draggable') {
+        Swal.fire({
+            title: "Correct!",
+            text: "CAPTCHA completed successfully.",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+            completeCaptcha(); // CAPTCHA completed successfully
+        });
+    } else if (captchaType === 'animal' && data === 'draggable') {
+        Swal.fire({
+            title: "Correct!",
+            text: "CAPTCHA completed successfully.",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+            completeCaptcha(); // CAPTCHA completed successfully
         });
     } else {
         Swal.fire({
@@ -270,8 +294,6 @@ function handleDrop(event) {
     }
 }
 
-
-// Reset login form and error message
 function resetLogin() {
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
@@ -284,3 +306,5 @@ function resetLogin() {
         captchaCompleted = false; // Reset CAPTCHA completion status
     }
 }
+// Call the function to show CAPTCHA modal when required
+// For example, you can call showCaptchaPopup() in the login form submission process
