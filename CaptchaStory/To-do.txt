@@ -1,0 +1,4 @@
+To-Do List CaptchaV2 (CaptchaStory/3FactorAuthentication)
+
+Logic
+1. Acak Gambar captcha tiap load
