@@ -216,13 +216,14 @@ function initializeAnimalCaptcha() {
 
 
 // Function to add drag-and-drop capabilities
+// Function to enable drag-and-drop capabilities
 function enableDragAndDrop(captchaType) {
     const dropZone = document.getElementById('dropBox');
 
     // Allow Drop
     dropZone.addEventListener('dragover', function(event) {
-        event.preventDefault();
-        dropZone.classList.add('dragover');
+        event.preventDefault(); // Prevent default to allow drop
+        dropZone.classList.add('dragover'); // Add class for visual feedback
     });
 
     // Handle Drop for Mouse
@@ -231,7 +232,7 @@ function enableDragAndDrop(captchaType) {
         handleDrop(event);
     });
 
-    // Handle Drop for Touch (simulate drag-and-drop)
+    // Handle Drop for Touch
     dropZone.addEventListener('touchend', function(event) {
         const touch = event.changedTouches[0];
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -241,7 +242,7 @@ function enableDragAndDrop(captchaType) {
     });
 
     dropZone.addEventListener('dragleave', function() {
-        dropZone.classList.remove('dragover');
+        dropZone.classList.remove('dragover'); // Remove class after drag leave
     });
 }
 
@@ -268,6 +269,7 @@ function handleDrop(event) {
         });
     }
 }
+
 
 // Reset login form and error message
 function resetLogin() {
